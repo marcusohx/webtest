@@ -48,13 +48,52 @@ var users = [
 ]
 
 
+
+
+var server = net.createServer();
+
+/*
+var server = net.createServer(function(socket) {
+	socket.write('Echo server\r\n');
+	socket.pipe(socket);
+	socket.on('error', function(err) {
+   	console.log(err)
+	})
+});
+
+*/
+
+var data = ""
+var remAdd = ""
+
+server.on("connection",function(socket){
+
+	var remoteAddress = socket.remoteAddress + ":" + socket.remotePort;
+	console.log("new client connection is made %s", remoteAddress)
+	
+	socket.on("data",function(d){
+		console.log("Data from %s: %s",remoteAddress,d)
+		data = d
+		remAdd = remoteAddress
+	});
+	socket.once("close",function(){
+		console.log("connection closing %s",remoteAddress)
+	});
+})
+
 app.get('/',function(req,res){
 	res.render('index',{
-		title: 'Customers',
-		users: users
+		title: 'Tcp server/client',
+		DATA: data,
+		RA: remAdd
+
 	});
 });
 
+
+server.listen(1337,function(){
+	console.log("server listening to port 1337")
+})
 
 
 app.listen(3000,function(){
