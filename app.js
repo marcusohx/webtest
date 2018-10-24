@@ -34,7 +34,7 @@ let clients = {}
 
 let clientCount = 0;
 
-let deviceid = "1234";
+let deviceid = "31323334";
 
 server.on('connection',function(connection){
 	let clientname
@@ -56,7 +56,7 @@ server.on('connection',function(connection){
 	console.log("new client connection is made %s", remoteAddress)
 	
 
-	connection.setEncoding('utf-8');
+	connection.setEncoding('hex');
 
 	connection.on('data',function(data){
 		message.push(data);
@@ -83,8 +83,8 @@ server.on('connection',function(connection){
           	} else {
 				//Send the message received to every client
 				if(clientname === deviceid){
-					console.log(success)
-					broadcast(`${clientInput}`);
+					console.log(hex2a(clientInput))
+					broadcast(hex2a(clientInput));
 	        	//Discard the previous keystrokes the client entered
 	        		message = [];
 				}
@@ -111,6 +111,14 @@ server.on('connection',function(connection){
 		console.log(`Error : ${error}`);
 	})
 })
+
+function hex2a(hexx) {
+    var hex = hexx.toString();//force conversion
+    var str = '';
+    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    return str;
+}
 
 
 
@@ -179,13 +187,6 @@ server.on("connection",function(socket){
 
 //hexx convertion
 
-function hex2a(hexx) {
-    var hex = hexx.toString();//force conversion
-    var str = '';
-    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    return str;
-}
 
 function verifydevice1(connectiondata,device){
 	if(connectiondata.toString('utf8') === device){
