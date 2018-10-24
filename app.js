@@ -51,10 +51,12 @@ server.on('connection',function(connection){
 		    }
 		}
 	}
-	connection.write(`Please enter a username\r\n`);
+	var remoteAddress = socket.remoteAddress + ":" + socket.remotePort;
+	console.log("new client connection is made %s", remoteAddress)
 	connection.setEncoding('utf-8');
 
 	connection.on('data',function(data){
+		console.log(data)
 		message.push(data);
 		
 		let clientInput = message.join('').replace('\r\n','');
@@ -62,14 +64,14 @@ server.on('connection',function(connection){
 		if(!clientname){
 			
 			if( clients[clientInput]){
-				connection.write('device added already')
+				console.log("device added")
 				message = [];
 				return;
 			} else {
 				clientname = clientInput;
 				clientCount++;
 				clients[clientInput] = connection;
-				connection.write(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
+				console.log(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
           		//Discard the previous keystrokes the client entered
           		message = [];
 
@@ -102,7 +104,7 @@ server.on('connection',function(connection){
 
 	//Handle error events
 	connection.on('error', error => {
-		connection.write(`Error : ${error}`);
+		console.log(error);
 	})
 })
 
