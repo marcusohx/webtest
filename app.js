@@ -51,12 +51,10 @@ server.on('connection',function(connection){
 		    }
 		}
 	}
-	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
-	console.log("new client connection is made %s", remoteAddress)
+	connection.write(`Please enter a username\r\n`);
 	connection.setEncoding('utf-8');
 
 	connection.on('data',function(data){
-		console.log(data)
 		message.push(data);
 		
 		let clientInput = message.join('').replace('\r\n','');
@@ -64,14 +62,14 @@ server.on('connection',function(connection){
 		if(!clientname){
 			
 			if( clients[clientInput]){
-				console.log("device added")
+				connection.write('device added already')
 				message = [];
 				return;
 			} else {
 				clientname = clientInput;
 				clientCount++;
 				clients[clientInput] = connection;
-				console.log(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
+				connection.write(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
           		//Discard the previous keystrokes the client entered
           		message = [];
 
@@ -83,6 +81,8 @@ server.on('connection',function(connection){
 					broadcast(`${clientInput}`);
 	        	//Discard the previous keystrokes the client entered
 	        		message = [];
+
+	        		console.log("data sent")
 				}
 				else{
 					console.log('This device is for recieving')
@@ -104,7 +104,7 @@ server.on('connection',function(connection){
 
 	//Handle error events
 	connection.on('error', error => {
-		console.log(error);
+		console.log(`Error : ${error}`);
 	})
 })
 
@@ -207,7 +207,8 @@ function verifydevice2(connectiondata,device){
 
 app.get('/',function(req,res){
 	res.render('index',{
-		title: 'Tcp server/client'
+		title: 'Tcp server/client',
+
 
 	});
 });
