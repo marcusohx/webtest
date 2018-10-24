@@ -51,25 +51,30 @@ server.on('connection',function(connection){
 		    }
 		}
 	}
-	connection.write(`Please enter a username\r\n`);
+
+	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
+	console.log("new client connection is made %s", remoteAddress)
+	
+
 	connection.setEncoding('utf-8');
 
 	connection.on('data',function(data){
 		message.push(data);
+		console.log(data)
 		
 		let clientInput = message.join('').replace('\r\n','');
 		
 		if(!clientname){
 			
 			if( clients[clientInput]){
-				connection.write('device added already')
+				console.log('device added already')
 				message = [];
 				return;
 			} else {
 				clientname = clientInput;
 				clientCount++;
 				clients[clientInput] = connection;
-				connection.write(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
+				console.log(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
           		//Discard the previous keystrokes the client entered
           		message = [];
 
@@ -78,11 +83,10 @@ server.on('connection',function(connection){
           	} else {
 				//Send the message received to every client
 				if(clientname === deviceid){
+					console.log(success)
 					broadcast(`${clientInput}`);
 	        	//Discard the previous keystrokes the client entered
 	        		message = [];
-
-	        		console.log("data sent")
 				}
 				else{
 					console.log('This device is for recieving')
