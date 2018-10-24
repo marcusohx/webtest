@@ -51,7 +51,7 @@ server.on('connection',function(connection){
 		    }
 		}
 	}
-	var remoteAddress = socket.remoteAddress + ":" + socket.remotePort;
+	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
 	console.log("new client connection is made %s", remoteAddress)
 	connection.setEncoding('utf-8');
 
