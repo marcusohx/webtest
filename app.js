@@ -201,17 +201,16 @@ function verifydevice2(connectiondata,device){
 			console.log("invalid device 2");
 		}
 }
+*/
 
 app.get('/',function(req,res){
 	res.render('index',{
-		title: 'Tcp server/client',
-		DATA: data,
-		RA: remAdd
+		title: 'Tcp server/client'
 
 	});
 });
 
-*/
+
 server.listen(20000,function(){
 	console.log("server listening to port 20000")
 })
