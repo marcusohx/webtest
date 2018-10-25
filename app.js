@@ -47,7 +47,7 @@ server.on('connection',function(connection){
 		    //Send message to all active clients except yourself 
 		    if( clients[ user ] !== connection ){
 
-		    	clients[ user ].write(msg);
+		    	clients[ user ].write(msg,'hex');
 		    }
 		}
 	}
@@ -60,7 +60,7 @@ server.on('connection',function(connection){
 
 	connection.on('data',function(data){
 		message.push(data);
-		console.log(data)
+		
 		
 		let clientInput = message.join('').replace('\r\n','');
 		
@@ -83,8 +83,9 @@ server.on('connection',function(connection){
           	} else {
 				//Send the message received to every client
 				if(clientname === deviceid){
-					console.log(hex2a(clientInput))
-					broadcast(hex2a(clientInput));
+					
+					console.log(data)
+					broadcast(hex2a(data));
 	        	//Discard the previous keystrokes the client entered
 	        		message = [];
 				}
@@ -118,6 +119,18 @@ function hex2a(hexx) {
     for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     return str;
+}
+function hexStringToByte(str) {
+  if (!str) {
+    return new Uint8Array();
+  }
+  
+  var a = [];
+  for (var i = 0, len = str.length; i < len; i+=2) {
+    a.push(parseInt(str.substr(i,2),16));
+  }
+  
+  return new Uint8Array(a);
 }
 
 
