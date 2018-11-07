@@ -41,17 +41,17 @@ server.on('connection',function(connection){
 
 	let message = [];
 
+
 	function broadcast( msg ){
 		  //Loop through the active clients object
 		  for( let user in clients ){
-		    //Send message to all active clients except yourself 
-		    if( clients[ user ] !== connection ){
-
-		    	clients[ user ].write(msg,'hex');
-		    }
+		    	// send to the client intended
+		    	if(user === "313233"){
+		    		clients[ user ].write(msg,'hex');
+		    	}
+		    	
 		}
 	}
-
 	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
 	console.log("new client connection is made %s", remoteAddress)
 	
@@ -65,27 +65,24 @@ server.on('connection',function(connection){
 		let clientInput = message.join('').replace('\r\n','');
 		
 		if(!clientname){
+
+			clientname = clientInput;
+			clientCount++;
 			
-			if( clients[clientInput]){
-				console.log('device added already')
-				message = [];
-				return;
-			} else {
-				clientname = clientInput;
-				clientCount++;
-				clients[clientInput] = connection;
-				console.log(`- Welcome to the Chatbox, There are ${clientCount} active users\r\n`);
-          		//Discard the previous keystrokes the client entered
-          		message = [];
+			clients[clientInput] = connection;
+
+			console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
+          	//Discard the previous keystrokes the client entered
+          	message = [];
 
 
-          	}
+          	
           	} else {
-				//Send the message received to every client
+				//the device that is sending
 				if(clientname === deviceid){
 					
-					console.log(data)
-					broadcast(hex2a(data));
+					console.log('data sent')
+					broadcast(data);
 	        	//Discard the previous keystrokes the client entered
 	        		message = [];
 				}
@@ -95,7 +92,6 @@ server.on('connection',function(connection){
 
 
 	        }
-	        
 	    
 	});
 	//A close event is emitted when a connection has disconnected from the server
@@ -113,25 +109,7 @@ server.on('connection',function(connection){
 	})
 })
 
-function hex2a(hexx) {
-    var hex = hexx.toString();//force conversion
-    var str = '';
-    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    return str;
-}
-function hexStringToByte(str) {
-  if (!str) {
-    return new Uint8Array();
-  }
-  
-  var a = [];
-  for (var i = 0, len = str.length; i < len; i+=2) {
-    a.push(parseInt(str.substr(i,2),16));
-  }
-  
-  return new Uint8Array(a);
-}
+
 
 
 
