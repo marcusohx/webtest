@@ -1,0 +1,33 @@
+<% include partials/header %>	
+	<main role="main">
+		<div class="container">
+		<h1><%= complete %></h1>
+			<% if(errors != undefined){ %>
+			<ul>
+				<% errors.forEach(function(error){ %>
+					<li><%= error.msg %> </li>
+
+				<% }) %>
+				</ul>
+			<% } %>
+
+			<u1>
+			<form method="POST" action="/register">
+				<label>Username</label><br>
+				<input type="text" name="username">
+				<br>
+				<label>Password</label><br>
+				<input type="password" name="password">
+				<br>
+				<label>Re-enter Password</label><br>
+				<input type="password" name="passwordMatch">
+				<br>
+				<label>Email</label><br>
+				<input type="text" name="email">
+				<br><br>
+				<input type="submit" value="Submit">
+			</form>
+			<h1><%= complete %></h1>
+		</div>
+	</main>
+<% include partials/footer %>
