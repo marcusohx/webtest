@@ -131,97 +131,6 @@ var server = net.createServer(function(socket) {
 
 
 // SELECT * FROM device_mapgroup AS t1 WHERE EXISTS ( SELECT * FROM device_mapgroup AS t2 WHERE t2.groupid = t1.groupid AND t1.groupid = '27' )
-var server = net.createServer();
-
-let clients = {}
-
-let clientCount = 0;
-
-let deviceid = "31323334";
-
-server.on('connection',function(connection){
-	let clientname
-
-	let message = [];
-
-
-	function broadcast( msg ){
-		  //Loop through the active clients object
-		  for( let user in clients ){
-		    	// send to the client intended
-		    	
-		    		clients[ user ].write(msg,'hex');
-		    	
-		    	
-		}
-	}
-	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
-	console.log("new client connection is made %s", remoteAddress)
-	
-
-	connection.setEncoding('hex');
-
-	connection.on('data',function(data){
-		message.push(data);
-		
-		
-		let clientInput = message.join('').replace('\r\n','');
-		
-		if(!clientname){
-
-			clientname = clientInput;
-			clientCount++;
-			
-			clients[clientInput] = connection;
-
-			console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
-          	//Discard the previous keystrokes the client entered
-          	message = [];
-
-
-          	
-          	} else {
-				//the device that is sending
-			
-					
-					console.log('data sent')
-					broadcast(data);
-	        	//Discard the previous keystrokes the client entered
-	        		message = [];
-				
-
-
-	        }
-	    
-	});
-	//A close event is emitted when a connection has disconnected from the server
-	connection.on('close', () => {
-	    //When a client disconnects, remove the name and connection
-	    delete clients[clientname];
-	    //Decrease the active client count
-	    clientCount--;
-	    //Send a message to every active client that someone just left the chat
-	})
-
-	//Handle error events
-	connection.on('error', error => {
-		console.log(`Error : ${error}`);
-	})
-})
-
-
-
-
-
-
-server.on('close',function(){
-	 //When a client disconnects, remove the name and connection
-	 delete clients[clientname];
-    //Decrease the active client count
-    clientCount--;
-    //Send a message to every active client that someone just left the chat
-    console.log(`server disconnected`);
-});
 
 
 app.get('/',function(req,res){
@@ -482,6 +391,98 @@ app.post('/mapdevice',function(req,res){
 		
 	}
 	
+});
+
+var server = net.createServer();
+
+let clients = {}
+
+let clientCount = 0;
+
+let deviceid = "31323334";
+
+server.on('connection',function(connection){
+	let clientname
+
+	let message = [];
+
+
+	function broadcast( msg ){
+		  //Loop through the active clients object
+		  for( let user in clients ){
+		    	// send to the client intended
+		    	
+		    		clients[ user ].write(msg,'hex');
+		    	
+		    	
+		}
+	}
+	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
+	console.log("new client connection is made %s", remoteAddress)
+	
+
+	connection.setEncoding('hex');
+
+	connection.on('data',function(data){
+		message.push(data);
+		
+		
+		let clientInput = message.join('').replace('\r\n','');
+		
+		if(!clientname){
+
+			clientname = clientInput;
+			clientCount++;
+			
+			clients[clientInput] = connection;
+
+			console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
+          	//Discard the previous keystrokes the client entered
+          	message = [];
+
+
+          	
+          	} else {
+				//the device that is sending
+			
+					
+					console.log('data sent')
+					broadcast(data);
+	        	//Discard the previous keystrokes the client entered
+	        		message = [];
+				
+
+
+	        }
+	    
+	});
+	//A close event is emitted when a connection has disconnected from the server
+	connection.on('close', () => {
+	    //When a client disconnects, remove the name and connection
+	    delete clients[clientname];
+	    //Decrease the active client count
+	    clientCount--;
+	    //Send a message to every active client that someone just left the chat
+	})
+
+	//Handle error events
+	connection.on('error', error => {
+		console.log(`Error : ${error}`);
+	})
+})
+
+
+
+
+
+
+server.on('close',function(){
+	 //When a client disconnects, remove the name and connection
+	 delete clients[clientname];
+    //Decrease the active client count
+    clientCount--;
+    //Send a message to every active client that someone just left the chat
+    console.log(`server disconnected`);
 });
 
 server.listen(20000,function(){
