@@ -131,13 +131,13 @@ var server = net.createServer(function(socket) {
 
 
 // SELECT * FROM device_mapgroup AS t1 WHERE EXISTS ( SELECT * FROM device_mapgroup AS t2 WHERE t2.groupid = t1.groupid AND t1.groupid = '27' )
+var server = net.createServer();
+
 let clients = {}
 
 let clientCount = 0;
 
-var deviceid = "";
-
-var ck = "";
+let deviceid = "31323334";
 
 server.on('connection',function(connection){
 	let clientname
@@ -145,30 +145,15 @@ server.on('connection',function(connection){
 	let message = [];
 
 
-	function broadcast( msg ,deviceid){
+	function broadcast( msg ){
 		  //Loop through the active clients object
-		  
-		  db.query('SELECT groupid FROM device_mapgroup WHERE DeviceID = ?',[deviceid],function(err,result,fields){
-		  	if(err) throw err;
-		  	db.query('SELECT DeviceID FROM device_mapgroup AS t1 WHERE EXISTS ( SELECT * FROM device_mapgroup AS t2 WHERE t2.groupid = t1.groupid AND t1.groupid = ? )',[result[0].groupid],
-		  		function(err,results,fields){
-		  			if(err) throw err;
-		  			console.log(results)
-		  			for(i = 0;i < results.length;i++){
-		  				 for( let user in clients ){
-					    	// send to the client intended
-					    	usersplit = user.split(",")
-					    	console.log(usersplit);
-					    	if(usersplit[0] == results[i].DeviceID){
-					    		clients[ user ].write(msg,'hex');
-					    	}
-						}
-		  			}
-		  		})
-		  })
-
-
-		 
+		  for( let user in clients ){
+		    	// send to the client intended
+		    	
+		    		clients[ user ].write(msg,'hex');
+		    	
+		    	
+		}
 	}
 	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
 	console.log("new client connection is made %s", remoteAddress)
@@ -180,68 +165,31 @@ server.on('connection',function(connection){
 		message.push(data);
 		
 		
-		let clientInput = hex2a(message.join('').replace('\r\n',''));
-
-		
-
+		let clientInput = message.join('').replace('\r\n','');
 		
 		if(!clientname){
-			if(clients[clientInput]){
-          	console.log("device already register")
-          	//Discard of the previous keystrokes the client entered
-         	message = [];
-        	return;
 
-			} else{
-				clientname = clientInput;
-				clientCount++;
-				
-				clients[clientInput] = connection;
+			clientname = clientInput;
+			clientCount++;
+			
+			clients[clientInput] = connection;
 
-				console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
-	          	//Discard the previous keystrokes the client entered
-	          	message = [];
+			console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
+          	//Discard the previous keystrokes the client entered
+          	message = [];
 
-	          	}	
+
           	
           	} else {
 				//the device that is sending
-
-				clientNamesplit = clientname.split(",");
-				console.log(clientNamesplit)
+			
+					
+					console.log('data sent')
+					broadcast(data);
+	        	//Discard the previous keystrokes the client entered
+	        		message = [];
 				
 
-
-				if(clientNamesplit.length != 2){
-					console.log("wrong client name")
-					message = [];
-				}
-				else {
-					db.query('SELECT DeviceID, CloudKey FROM device_mapgroup WHERE DeviceID = ?',[clientNamesplit[0]],function(err,results,fields){
-						if(err){
-							console.log("no such device")
-						} else {
-							deviceid = results[0].DeviceID
-							ck = results[0].CloudKey
-
-							
-							if(clientNamesplit[0] == deviceid && clientNamesplit[1] == ck){
-								console.log('data sent')
-								broadcast(data,clientNamesplit[0]);
-				        	//Discard the previous keystrokes the client entered
-				        		message = [];
-							}
-							else{
-								console.log('There is no such user with this cloud key')
-								message = [];
-							}
-							
-
-						}
-					});
-					
-
-				}
 
 	        }
 	    
@@ -262,13 +210,8 @@ server.on('connection',function(connection){
 })
 
 
-function hex2a(hexx) {
-    var hex = hexx.toString();//force conversion
-    var str = '';
-    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    return str;
-}
+
+
 
 
 server.on('close',function(){
