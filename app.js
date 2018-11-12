@@ -2,7 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var path = require('path');
 var net = require('net');
-const mysql = require('mysql');
+
 var app = express();
 
 /*
@@ -26,19 +26,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'public')))
 
 
-const db = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '123456',
-	database : 'nodemysql'
-});
 
-db.connect(function(err){
-	if(err){
-		throw err;
-	}
-	console.log("Mysql connected...")
-});
 
 var server = net.createServer();
 
@@ -46,9 +34,7 @@ let clients = {}
 
 let clientCount = 0;
 
-var deviceid = "";
-
-var ck = "";
+let deviceid = "31323334";
 
 server.on('connection',function(connection){
 	let clientname
@@ -56,30 +42,15 @@ server.on('connection',function(connection){
 	let message = [];
 
 
-	function broadcast( msg ,deviceid){
+	function broadcast( msg ){
 		  //Loop through the active clients object
-		  
-		  db.query('SELECT groupid FROM device_mapgroup WHERE DeviceID = ?',[deviceid],function(err,result,fields){
-		  	if(err) throw err;
-		  	db.query('SELECT DeviceID FROM device_mapgroup AS t1 WHERE EXISTS ( SELECT * FROM device_mapgroup AS t2 WHERE t2.groupid = t1.groupid AND t1.groupid = ? )',[result[0].groupid],
-		  		function(err,results,fields){
-		  			if(err) throw err;
-		  			
-		  			for(i = 0;i < results.length;i++){
-		  				 for( let user in clients ){
-					    	// send to the client intended
-					    	usersplit = user.split(",")
-					    	
-					    	if(usersplit[0] == results[i].DeviceID){
-					    		clients[ user ].write(msg,'hex');
-					    	}
-						}
-		  			}
-		  		})
-		  })
-
-
-		 
+		  for( let user in clients ){
+		    	// send to the client intended
+		    	if(user === "313233"){
+		    		clients[ user ].write(msg,'hex');
+		    	}
+		    	
+		}
 	}
 	var remoteAddress = connection.remoteAddress + ":" + connection.remotePort;
 	console.log("new client connection is made %s", remoteAddress)
@@ -91,69 +62,34 @@ server.on('connection',function(connection){
 		message.push(data);
 		
 		
-		let clientInput = hex2a(message.join('').replace('\r\n',''));
-
-		
-
+		let clientInput = message.join('').replace('\r\n','');
 		
 		if(!clientname){
-			if(clients[clientInput]){
-          	console.log("device already register")
-          	//Discard of the previous keystrokes the client entered
-         	message = [];
-        	return;
 
-			} else{
-				clientname = clientInput;
-				clientCount++;
-				
-				clients[clientInput] = connection;
+			clientname = clientInput;
+			clientCount++;
+			
+			clients[clientInput] = connection;
 
-				console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
-	          	//Discard the previous keystrokes the client entered
-	          	message = [];
+			console.log(`- Welcome to the server, There are ${clientCount} active users\r\n`);
+          	//Discard the previous keystrokes the client entered
+          	message = [];
 
-	          	}	
+
           	
           	} else {
 				//the device that is sending
-
-				clientNamesplit = clientname.split(",");
-				console.log(clientNamesplit)
-				
-
-
-				if(clientNamesplit.length != 2){
-					console.log("wrong client name")
-					message = [];
-				}
-				else {
-					db.query('SELECT DeviceID, CloudKey FROM device_mapgroup WHERE DeviceID = ?',[clientNamesplit[0]],function(err,results,fields){
-						if(err){
-							console.log("no such device")
-						} else {
-							deviceid = results[0].DeviceID
-							ck = results[0].CloudKey
-
-							
-							if(clientNamesplit[0] == deviceid && clientNamesplit[1] == ck){
-								console.log('data sent')
-								broadcast(data,clientNamesplit[0]);
-				        	//Discard the previous keystrokes the client entered
-				        		message = [];
-				        		return
-							}
-							else{
-								console.log('There is no such user with this cloud key')
-								message = [];
-							}
-							
-
-						}
-					});
+				if(clientname === deviceid){
 					
-
+					console.log('data sent')
+					broadcast(data);
+	        	//Discard the previous keystrokes the client entered
+	        		message = [];
 				}
+				else{
+					console.log('This device is for recieving')
+				}
+
 
 	        }
 	    
@@ -174,13 +110,8 @@ server.on('connection',function(connection){
 })
 
 
-function hex2a(hexx) {
-    var hex = hexx.toString();//force conversion
-    var str = '';
-    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    return str;
-}
+
+
 
 
 server.on('close',function(){
@@ -193,6 +124,90 @@ server.on('close',function(){
 });
 
 
+/*
+var server = net.createServer(function(socket) {
+	socket.write('Echo server\r\n');
+	socket.pipe(socket);
+	socket.on('error', function(err) {
+   	console.log(err)
+	})
+});
+
+
+
+var data = ""
+var remAdd = ""
+
+var deviceid = "1234"
+var deviceid2 = "5678"
+var correctdevice1 = ""
+var correctdevice2 = ""
+
+var clients = [];
+
+server.on("connection",function(socket){
+
+	var remoteAddress = socket.remoteAddress + ":" + socket.remotePort;
+	console.log("new client connection is made %s", remoteAddress)
+	
+	clients.push(socket);
+
+	console.log(clients);
+
+	socket.on("data",function(d){
+		
+		console.log("Data from %s: %s",remoteAddress,d)
+		console.log(d)
+		if(correctdevice1 == "send" && correctdevice2=="send"){
+			console.log("success connection of both device");
+			data = d.toString('utf8');
+			socket.write(data);
+			console.log(data); 
+		}else{
+			verifydevice1(d,deviceid)
+			verifydevice2(d,deviceid2)
+			console.log("connection unsuccessful")
+			
+		}
+
+	});
+	socket.once("close",function(){
+		console.log("connection closing %s",remoteAddress)
+	});
+})
+
+//hexx convertion
+
+
+function verifydevice1(connectiondata,device){
+	if(connectiondata.toString('utf8') === device){
+			console.log("success connection 1");
+			correctdevice1 = "send";
+			
+		}
+		else{
+			console.log("invalid device 1");
+		}
+}
+function verifydevice2(connectiondata,device){
+	if(connectiondata.toString('utf8') === device){
+			console.log("success connection 2");
+			correctdevice2 = "send";
+			
+		}
+		else{
+			console.log("invalid device 2");
+		}
+}
+*/
+
+app.get('/',function(req,res){
+	res.render('index',{
+		title: 'Tcp server/client',
+
+
+	});
+});
 
 
 server.listen(20000,function(){
@@ -200,4 +215,7 @@ server.listen(20000,function(){
 })
 
 
+app.listen(3000,function(){
+	console.log('Server started on port 3000....')
+})
 
