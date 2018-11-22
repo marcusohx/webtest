@@ -1,0 +1,30 @@
+<% include partials/header %>	
+
+<table border="1" cellpadding="7" cellspacing="7">
+  <tr>
+    <th width="50px">No</th>
+    <th>DeviceID</th>
+    <th>CloudKey</th>
+    <th>Devie Name</th>
+    <th>User ID</th>
+  </tr>
+  <% if(data.length){ 
+    for(var i = 0;i < data.length;i++) { %>
+  <tr>
+    <td><%=(i+1)%></td>
+    <td><%=data[i].DeviceID%></td>
+    <td><%=data[i].CloudKey%></td>
+    <td><%=data[i].devicename%></td>
+    <td><%=data[i].id%></td>
+  </tr>
+
+  <% }
+  }else{ %>
+  <tr>
+    <td colspan="3">No user</td>
+  </tr>
+<% } %>
+
+
+</table>
+<% include partials/footer %>

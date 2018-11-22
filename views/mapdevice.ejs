@@ -1,0 +1,42 @@
+<% include partials/header %>
+<form action="/mapdevice" method="post">
+  <main role="main">
+    <div class="container">
+    <br>
+<label>Group name: </label>
+<input type="text" name="groupname">
+<br><br>
+<table border="1" cellpadding="7" cellspacing="7">
+  <tr>
+    <th width="50px">No</th>
+    <th>DeviceID</th>
+    <th>CloudKey</th>
+    <th>Device Name</th>
+    <th>User ID</th>
+  </tr>
+  <% if(data.length){ 
+    for(var i = 0;i < data.length;i++) { %>
+  <tr>
+    <td><%=(i+1)%></td>
+    <td><a href="/mapdevice/<%=data[i].DeviceID%>"><%=data[i].DeviceID%></a></td>
+    <td><%=data[i].CloudKey%></td>
+    <td><%=data[i].devicename%></td>
+    <td><%=data[i].id%></td>
+    <td><input type="checkbox" name="checkbox" value="<%=data[i].DeviceID%>" />&nbsp;</td>
+  </tr>
+
+  <% }
+  }else{ %>
+  <tr>
+    <td colspan="3">No devices</td>
+  </tr>
+<% } %>
+
+
+</table>
+<input type="submit" value="Add device">
+</div>
+</main>
+</form>
+<h3><%= error %></h3>
+<% include partials/footer %>
