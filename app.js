@@ -117,6 +117,7 @@ app.get('/createuserstable',function(req,res){
 	});
 });
 
+
 app.get('/',function(req,res){
 	console.log(req.user);
 	console.log(req.isAuthenticated())
@@ -128,21 +129,6 @@ app.get('/',function(req,res){
 	  		});
 	}
 	res.render('home');
-
-});
-
-
-app.get('/db',function(req,res){
-	console.log(req.user);
-	console.log(req.isAuthenticated())
-	if(req.isAuthenticated()){
-		db.query('SELECT username FROM users WHERE id = ?',[req.user],
-	  		function(err,results,fields){
-	  			if(err) throw err;
-	  			console.log(results[0].username)
-	  		});
-	}
-	res.render('dashboard');
 
 });
 
@@ -162,7 +148,7 @@ app.get('/login',function(req,res){
 
 app.post('/login', passport.authenticate(
 	'local',{
-	successRedirect: '/db',
+	successRedirect: '/',
 	failureRedirect: '/login'
 }));
 
@@ -213,10 +199,10 @@ app.post('/register',function(req,res){
 	req.checkBody('username', 'Username field cannot be empty.').notEmpty();
 	req.checkBody('username', 'Username must be between 4-15 characters long.').len(4, 15);
 	req.checkBody('email', 'The email you entered is invalid, please try again.').isEmail();
-	req.checkBody('email', 'Email field cannot be empty').notEmpty();
-	req.checkBody('password', 'Password must be at 8-16 character').len(8, 16);
-	//req.checkBody("password", "Password must include one lowercase character, one uppercase character, a number, and a special character.").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
-	//req.checkBody('passwordMatch', 'Re-enter Password must be notEmpty').notEmpty();
+	req.checkBody('email', 'Email address must be between 4-100 characters long, please try again.').len(4, 100);
+	req.checkBody('password', 'Password must be between 8-100 characters long.').len(8, 100);
+	req.checkBody("password", "Password must include one lowercase character, one uppercase character, a number, and a special character.").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
+	req.checkBody('passwordMatch', 'Re-enter Password must be between 8-100 characters long.').len(8, 100);
 	req.checkBody('passwordMatch', 'Passwords do not match, please try again.').equals(req.body.password);
  
 
@@ -224,7 +210,8 @@ app.post('/register',function(req,res){
 
 	if(errors){
 		res.render('register',{
-			errors: errors
+			errors: errors,
+			complete: "Please check for errors"
 		});
 	} else {
 		
@@ -391,30 +378,9 @@ app.post('/mapdevice',function(req,res){
 	
 });
 
-app.get('/devices',authenticationMiddleware(),function(req,res){
-
-	db.query('SELECT * from device WHERE id = ?',[req.user],function(error,results){
-		if(error) throw error;
-
-
-		res.render('devices',{data:results,error:''});
-
-
-	})
-});
-
-app.get('/test',function(req,res){
-	res.render('home2');
-});
-app.get('/externalhp',function(req,res){
-	db.query('SELECT groupid, groupname from mapgroup WHERE id = ?',[req.user],function(error,results){
-		if(error) throw error;
-
-
-		res.render('groupdevices2',{data:results});
-	})
-});
-
+server.listen(20000,function(){
+	console.log("server listening to port 20000")
+})
 
 
 app.listen(3000,function(){
@@ -462,14 +428,10 @@ server.on('connection',function(connection){
 		  			for(var h  = 0;h < result.length;h++){
 		  				 for( let user in clients ){
 					    	// send to the client intended
-					    	//var usersplitted = user.split(",")
+					    	var usersplitted = user.split(",")
 					    	
-							var rows = JSON.parse(JSON.stringify(results[h]));
-							let cln = rows.DeviceID + "," + rows.Cloudkey;
-					    	if(user === cln){
-					    		if(clientname != user){
-					    			clients[ user ].write(msg,'hex');
-					    		}
+					    	if(usersplitted[0] == result[h].DeviceID){
+					    		clients[ user ].write(msg,'hex');
 					    	}
 						}
 		  			}
@@ -522,25 +484,19 @@ server.on('connection',function(connection){
 
 				db.query('SELECT DeviceID, CloudKey FROM device_mapgroup WHERE DeviceID = ?',[clientNamesplit[0]],function(err,results,fields){
 					if(err) throw err;
-					
-					var rows = JSON.parse(JSON.stringify(results[0]));
-					let cnn = rows.DeviceID + "," + rows.Cloudkey;
+
 					if(!results.length){
 						console.log("no such device");
 
 					}
-					else{
-						var rows = JSON.parse(JSON.stringify(results[0]));
-						let cnn = rows.DeviceID + "," + rows.Cloudkey;
-						
-						if(clientname === ccn){
-							broadcast(data,results[0].DeviceID);
-							console.log("data sent");
-						}
-						else{
-							console.log("wrong cloud key"); 
-						}
+					else if(results[0].CloudKey == clientNamesplit[1]){
+						broadcast(data,results[0].DeviceID);
+						console.log("data sent");
 					}
+					else{
+						console.log("wrong cloud key");
+					}
+
 				});
 					
 
@@ -582,9 +538,5 @@ server.on('close',function(){
     //Send a message to every active client that someone just left the chat
     console.log(`server disconnected`);
 });
-
-server.listen(20000,function(){
-	console.log("server listening to port 20000")
-})
 
 */
