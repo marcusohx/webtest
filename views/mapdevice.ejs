@@ -1,42 +1,87 @@
-<% include partials/header %>
-<form action="/mapdevice" method="post">
-  <main role="main">
-    <div class="container">
-    <br>
-<label>Group name: </label>
-<input type="text" name="groupname">
-<br><br>
-<table border="1" cellpadding="7" cellspacing="7">
-  <tr>
-    <th width="50px">No</th>
-    <th>DeviceID</th>
-    <th>CloudKey</th>
-    <th>Device Name</th>
-    <th>User ID</th>
-  </tr>
-  <% if(data.length){ 
-    for(var i = 0;i < data.length;i++) { %>
-  <tr>
-    <td><%=(i+1)%></td>
-    <td><a href="/mapdevice/<%=data[i].DeviceID%>"><%=data[i].DeviceID%></a></td>
-    <td><%=data[i].CloudKey%></td>
-    <td><%=data[i].devicename%></td>
-    <td><%=data[i].id%></td>
-    <td><input type="checkbox" name="checkbox" value="<%=data[i].DeviceID%>" />&nbsp;</td>
-  </tr>
-
-  <% }
-  }else{ %>
-  <tr>
-    <td colspan="3">No user</td>
-  </tr>
-<% } %>
 
 
-</table>
-<input type="submit" value="Add device">
-</div>
-</main>
-</form>
-<h3><%= error %></h3>
-<% include partials/footer %>
+<% include partials/header2 %>
+        <!-- Left navbar-header end -->
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row bg-title">
+                    <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+                        <h4 class="page-title">Basic Table</h4> </div>
+                    <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12"> <a href="http://wrappixel.com/templates/pixeladmin/" target="_blank" class="btn btn-danger pull-right m-l-20 btn-rounded btn-outline hidden-xs hidden-sm waves-effect waves-light">Upgrade to Pro</a>
+                        <ol class="breadcrumb">
+                            <li><a href="#">Dashboard</a></li>
+                            <li class="active">Basic Table</li>
+                        </ol>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /row -->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            <h3 class="box-title">Basic Table</h3>
+
+                            <form action="/mapdevice" method="post">
+                            <label>Group name: </label>
+                            <input type="text" name="groupname">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                          <th width="50px">No</th>
+                                          <th>DeviceID</th>
+                                          <th>CloudKey</th>
+                                          <th>Device Name</th>
+                                          <th>User ID</th>
+                                        </tr>
+                                      </thead>
+                                        <% if(data.length){ 
+                                          for(var i = 0;i < data.length;i++) { %>
+                                        <tr>
+                                          <td><%=(i+1)%></td>
+                                          <td><a href="/device/<%=data[i].DeviceID%>"><%=data[i].DeviceID%></a></td>
+                                          <td><%=data[i].CloudKey%></td>
+                                          <td><%=data[i].devicename%></td>
+                                          <td><%=data[i].id%></td>
+                                          <td><input type="checkbox" name="checkbox" value="<%=data[i].DeviceID%>" />&nbsp;</td>
+                                        </tr>
+
+                                        <% }
+                                        }else{ %>
+                                        <tr>
+                                          <td colspan="3">No devices</td>
+                                        </tr>
+                                      <% } %>
+                                    </tbody>
+                                </table>
+                                <input type="submit" value="Add device">
+                            </div>
+                            </form>
+                            <h3><%= error %></h3>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+            <footer class="footer text-center"> 2017 &copy; Pixel Admin brought to you by wrappixel.com </footer>
+        </div>
+        <!-- /#page-wrapper -->
+    </div>
+    <!-- /#wrapper -->
+    <!-- jQuery -->
+    <script src="plugins/bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Menu Plugin JavaScript -->
+    <script src="plugins/bower_components/sidebar-nav/dist/sidebar-nav.min.js"></script>
+    <!--slimscroll JavaScript -->
+    <script src="js/jquery.slimscroll.js"></script>
+    <!--Wave Effects -->
+    <script src="js/waves.js"></script>
+    <!-- Custom Theme JavaScript -->
+    <script src="js/custom.min.js"></script>
+</body>
+
+</html>

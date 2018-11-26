@@ -117,7 +117,6 @@ app.get('/createuserstable',function(req,res){
 	});
 });
 
-
 app.get('/',function(req,res){
 	console.log(req.user);
 	console.log(req.isAuthenticated())
@@ -129,6 +128,21 @@ app.get('/',function(req,res){
 	  		});
 	}
 	res.render('home');
+
+});
+
+
+app.get('/db',function(req,res){
+	console.log(req.user);
+	console.log(req.isAuthenticated())
+	if(req.isAuthenticated()){
+		db.query('SELECT username FROM users WHERE id = ?',[req.user],
+	  		function(err,results,fields){
+	  			if(err) throw err;
+	  			console.log(results[0].username)
+	  		});
+	}
+	res.render('dashboard');
 
 });
 
@@ -148,7 +162,7 @@ app.get('/login',function(req,res){
 
 app.post('/login', passport.authenticate(
 	'local',{
-	successRedirect: '/',
+	successRedirect: '/index2',
 	failureRedirect: '/login'
 }));
 
@@ -199,10 +213,10 @@ app.post('/register',function(req,res){
 	req.checkBody('username', 'Username field cannot be empty.').notEmpty();
 	req.checkBody('username', 'Username must be between 4-15 characters long.').len(4, 15);
 	req.checkBody('email', 'The email you entered is invalid, please try again.').isEmail();
-	req.checkBody('email', 'Email address must be between 4-100 characters long, please try again.').len(4, 100);
-	req.checkBody('password', 'Password must be between 8-100 characters long.').len(8, 100);
-	req.checkBody("password", "Password must include one lowercase character, one uppercase character, a number, and a special character.").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
-	req.checkBody('passwordMatch', 'Re-enter Password must be between 8-100 characters long.').len(8, 100);
+	req.checkBody('email', 'Email field cannot be empty').notEmpty();
+	req.checkBody('password', 'Password must be at 8-16 character').len(8, 16);
+	//req.checkBody("password", "Password must include one lowercase character, one uppercase character, a number, and a special character.").matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i");
+	//req.checkBody('passwordMatch', 'Re-enter Password must be notEmpty').notEmpty();
 	req.checkBody('passwordMatch', 'Passwords do not match, please try again.').equals(req.body.password);
  
 
@@ -211,7 +225,7 @@ app.post('/register',function(req,res){
 	if(errors){
 		res.render('register',{
 			errors: errors,
-			complete: "Please check for errors"
+			complete: ''
 		});
 	} else {
 		
@@ -219,33 +233,44 @@ app.post('/register',function(req,res){
 		var password = req.body.password
 		var email =  req.body.email
 		  // Store hash in your password DB.
-		bcrypt.hash(password, saltRounds, function(err, hash) {
+		var sql1 = 'SELECT COUNT(*) AS countuser FROM users WHERE username = ?'
+		db.query(sql1,[username],
+			function(error,result){
+				console.log(result[0].countuser);
+				if(result[0].countuser > 0){
+					res.render('register',{complete: 'username already in use'});	
+				} 
+				else{
 
-			db.query('INSERT INTO users(username,password,email) VALUES(?,?,?)',[username,hash,email],
-				function(error,results,fields){
-					if(error){
-						
-						res.render('register',{complete: 'insert error'});	
-					}
-					else{
-						db.query('SELECT LAST_INSERT_ID() as user_id',function(error,results,fields){
-						if (error) throw error;
+					bcrypt.hash(password, saltRounds, function(err, hash) {
 
-						const user_id = results[0]
+						db.query('INSERT INTO users(username,password,email) VALUES(?,?,?)',[username,hash,email],
+							function(error,results,fields){
+								if(error){
+									
+									res.render('register',{complete: 'insert error'});	
+								}
+								else{
+									db.query('SELECT LAST_INSERT_ID() as user_id',function(error,results,fields){
+									if (error) throw error;
 
-						console.log(results[0]);
-						req.login(user_id, function(err){
-							res.redirect('/');
-						});
+									const user_id = results[0]
 
-						res.render('register',{complete: 'Registration complete'});	
+									console.log(results[0]);
+									req.login(user_id, function(err){
+										res.redirect('/');
+									});
+
+									res.render('register',{complete: 'Registration complete'});	
+								});
+
+								}
+
+
+							});
 					});
-
-					}
-
-
-				});
-		});
+				}
+			});
 	}
 
 
@@ -277,7 +302,7 @@ app.get('/adddevice',authenticationMiddleware(),function(req,res){
 app.post('/adddevice',function(req,res){
 	req.checkBody('deviceid', 'Device ID field cannot be empty.').notEmpty();
 	req.checkBody('deviceid', 'Device ID field can only be numeric').isInt();
-	req.checkBody('deviceid', 'Device ID must be between 10 characters long.').len(10);
+	//req.checkBody('deviceid', 'Device ID must be between 10 characters long.').len(10);
 	req.checkBody('cloudkey', 'cloudkey field cannot be empty.').notEmpty();
 	req.checkBody('cloudkey', 'cloudkey must be between 6 characters long.').len(6);
 	req.checkBody('devicename', 'devicename field cannot be empty.').notEmpty();
@@ -296,17 +321,32 @@ app.post('/adddevice',function(req,res){
 		var cloudkey = req.body.cloudkey
 		var username = req.body.devicename
 		var userid = req.user
-		var sql = 'INSERT INTO device(DeviceID,CloudKey,devicename,id) VALUES(?,?,?,?)'
-		db.query(sql,[deviceid,cloudkey,username,userid],
-			function(error,results,fields){
-				if(error){
-					res.render('adddevice',{error: 'insert error'});	
-				}
+
+		var sql1 = 'SELECT COUNT(*) AS countdevice FROM device WHERE DeviceID = ? AND id = ?'
+		db.query(sql1,[deviceid,userid,username],
+			function(error,result){
+				console.log(result[0].countdevice);
+				if(result[0].countdevice > 0){
+					console.log(result[0].countdevice);
+					res.render('adddevice',{
+						error: "DeviceID already exist"
+					});
+				} 
 				else{
-					res.render('adddevice',{error: 'success'});	
-					console.log("success")
+					var sql = 'INSERT INTO device(DeviceID,CloudKey,devicename,id) VALUES(?,?,?,?)'
+					db.query(sql,[deviceid,cloudkey,username,userid],
+						function(error,results,fields){
+							if(error){
+								res.render('adddevice',{error: 'insert error'});	
+							}
+							else{
+								res.render('adddevice',{error: 'success'});	
+								console.log("success")
+							}
+					})
 				}
-		})
+			})
+
 	}
 });
 
@@ -321,18 +361,16 @@ app.get('/mapdevice',authenticationMiddleware(),function(req,res){
 
 	})
 });
-app.get('/mapdevice/:id',authenticationMiddleware(),function(req,res){
+app.get('/device/:id',authenticationMiddleware(),function(req,res){
 
 	db.query('SELECT * from device WHERE DeviceID = ?',[req.params.id],function(error,results){
 		if(error) throw error;
-
-
 		res.render('device',{data:results});
 	})
 	
 });
 
-app.post('/mapdevice',function(req,res){
+app.post('/mapdevice', authenticationMiddleware(),function(req,res){
 	console.log(req.body.checkbox)
 
 	var groupname = req.body.groupname
@@ -378,10 +416,49 @@ app.post('/mapdevice',function(req,res){
 	
 });
 
-server.listen(20000,function(){
-	console.log("server listening to port 20000")
-})
+app.get('/devices',authenticationMiddleware(),function(req,res){
 
+	db.query('SELECT * from device WHERE id = ?',[req.user],function(error,results){
+		if(error) throw error;
+
+
+		res.render('devices',{data:results,error:''});
+
+
+	})
+});
+
+app.get('/index2',authenticationMiddleware(),function(req,res){
+	db.query('SELECT * from device WHERE id = ?',[req.user],function(error,results){
+		if(error) throw error;
+
+
+		res.render('index2',{data:results});
+
+
+	})
+});
+app.get('/profile',function(req,res){
+	res.render('profile');
+});
+app.get('/basictable',function(req,res){
+	res.render('basic-table');
+});
+app.get('/fontawesome',function(req,res){
+	res.render('fontawesome');
+});
+app.get('/mapgoogle',function(req,res){
+	res.render('map-google');
+});
+app.get('/blank',function(req,res){
+	res.render('blank');
+});
+app.get('/404',function(req,res){
+	res.render('404');
+});
+app.get('/gmap',function(req,res){
+	res.render('gmap');
+});
 
 app.listen(3000,function(){
 	console.log('Server started on port 3000....')
@@ -428,10 +505,14 @@ server.on('connection',function(connection){
 		  			for(var h  = 0;h < result.length;h++){
 		  				 for( let user in clients ){
 					    	// send to the client intended
-					    	var usersplitted = user.split(",")
+					    	//var usersplitted = user.split(",")
 					    	
-					    	if(usersplitted[0] == result[h].DeviceID){
-					    		clients[ user ].write(msg,'hex');
+							var rows = JSON.parse(JSON.stringify(results[h]));
+							let cln = rows.DeviceID + "," + rows.Cloudkey;
+					    	if(user === cln){
+					    		if(clientname != user){
+					    			clients[ user ].write(msg,'hex');
+					    		}
 					    	}
 						}
 		  			}
@@ -484,19 +565,25 @@ server.on('connection',function(connection){
 
 				db.query('SELECT DeviceID, CloudKey FROM device_mapgroup WHERE DeviceID = ?',[clientNamesplit[0]],function(err,results,fields){
 					if(err) throw err;
-
+					
+					var rows = JSON.parse(JSON.stringify(results[0]));
+					let cnn = rows.DeviceID + "," + rows.Cloudkey;
 					if(!results.length){
 						console.log("no such device");
 
 					}
-					else if(results[0].CloudKey == clientNamesplit[1]){
-						broadcast(data,results[0].DeviceID);
-						console.log("data sent");
-					}
 					else{
-						console.log("wrong cloud key");
+						var rows = JSON.parse(JSON.stringify(results[0]));
+						let cnn = rows.DeviceID + "," + rows.Cloudkey;
+						
+						if(clientname === ccn){
+							broadcast(data,results[0].DeviceID);
+							console.log("data sent");
+						}
+						else{
+							console.log("wrong cloud key"); 
+						}
 					}
-
 				});
 					
 
@@ -538,5 +625,9 @@ server.on('close',function(){
     //Send a message to every active client that someone just left the chat
     console.log(`server disconnected`);
 });
+
+server.listen(20000,function(){
+	console.log("server listening to port 20000")
+})
 
 */
