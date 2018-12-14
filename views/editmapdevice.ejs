@@ -1,0 +1,103 @@
+
+
+<% include partials/header2 %>
+        <!-- Left navbar-header end -->
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row bg-title">
+                    <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+                        <h4 class="page-title">Edit Table</h4> </div>
+                    <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12"> <a href="/groupdevices" class="btn btn-danger pull-right m-l-20 btn-rounded btn-outline hidden-xs hidden-sm waves-effect waves-light">Back</a>
+                        <ol class="breadcrumb">
+                            <li><a href="#">Dashboard</a></li>
+                            <li class="active">Edit table</li>
+                        </ol>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            <h3 class="box-title">Current Group - <%=data2[0].groupname%></h3>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Device ID</th>
+                                            <th>Device Name</th>
+                                            <th>Group id</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                          <% if(data2.length){ 
+                                              for(var i = 0;i < data2.length;i++) { %>
+                                            <tr>
+                                              <td><%=(i+1)%></td>
+                                              <td><%=data2[i].deviceid%></td>
+                                              <td><%=data2[i].devicename%></td>
+                                              <td><%=data2[i].groupid%></td>
+                                            <% }
+                                            }else{ %>
+                                            <tr>
+                                              <td>No groups</td>
+                                            </tr>
+                                            <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- /row -->
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            <h3 class="box-title">Select Devices to be in the group</h3>
+
+                            <form action="/groupdevice/edit/<%=data2[0].groupid%>" method="post">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                          <th width="50px">No</th>
+                                          <th>DeviceID</th>
+                                          <th>CloudKey</th>
+                                          <th>Device Name</th>
+                                          <th>User ID</th>
+                                        </tr>
+                                      </thead>
+                                        <% if(data.length){ 
+                                          for(var i = 0;i < data.length;i++) { %>
+                                        <tr>
+                                          <td><%=(i+1)%></td>
+                                          <td><a href="/device/<%=data[i].DeviceID%>"><%=data[i].DeviceID%></a></td>
+                                          <td><%=data[i].CloudKey%></td>
+                                          <td><%=data[i].devicename%></td>
+                                          <td><%=data[i].id%></td>
+                                          <td><input type="checkbox" name="checkbox" value="<%=data[i].DeviceID%>" />&nbsp;</td>
+                                        </tr>
+
+                                        <% }
+                                        }else{ %>
+                                        <tr>
+                                          <td colspan="3">No devices</td>
+                                        </tr>
+                                      <% } %>
+                                    </tbody>
+                                </table>
+                                <input type="submit" value="Save">
+                            </div>
+                            </form>
+                            <h3><%= error %></h3>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+<% include partials/footer2 %>
